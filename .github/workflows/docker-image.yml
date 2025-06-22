@@ -18,8 +18,24 @@ on:
         default: ${{ github.repository }}
 
       flavor:
-        required: true
+        required: false
         type: string
+        default: |
+          latest=false
+
+      tags:
+        required: false
+        type: string
+        default: |
+          type=semver,pattern=v{{major}}
+          type=semver,pattern=v{{version}}
+          type=semver,pattern=v{{major}}.{{minor}}
+          type=semver,pattern=latest
+
+      platforms:
+        required: false
+        type: string
+        default: linux/amd64, linux/arm64
 
     secrets:
       GH_PCKG_TOKEN:
@@ -57,7 +73,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64, linux/arm64
+          platforms: ${{ inputs.platforms }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
