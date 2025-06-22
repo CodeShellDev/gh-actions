@@ -30,7 +30,7 @@ jobs:
 
       - name: Replace File Placeholders in ${{ inputs.output }}
         run: |
-          bash ./replace_placeholders.sh ${{ inputs.template }} ${{ inputs.output }}
+          bash ./replace-placeholders.sh ${{ inputs.template }} ${{ inputs.output }}
 
       - name: Commit & Push ${{ inputs.output }}
         env:
