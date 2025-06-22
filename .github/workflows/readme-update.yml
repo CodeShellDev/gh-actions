@@ -6,7 +6,7 @@ on:
       template:
         required: false
         type: string
-        default: ./github/templates/README.template.md
+        default: .github/templates/README.template.md
 
       output:
         required: false
