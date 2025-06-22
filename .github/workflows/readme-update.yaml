@@ -1,0 +1,27 @@
+name: Update README
+
+on:
+  workflow_call:
+    inputs:
+      template:
+        required: false
+        type: string
+        default: ./github.com/templates/README.template.md
+
+      output:
+        required: false
+        type: string
+        default: README.md
+
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+
+jobs:
+  update-readme:
+    uses: codeshelldev/gh-actions/.github/workflows/templating.yaml@main
+    with:
+      template: ${{ inputs.template }}
+      output: ${{ inputs.output }}
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
