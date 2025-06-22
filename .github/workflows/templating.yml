@@ -25,7 +25,8 @@ jobs:
 
       - name: Get Helper Script
         run: |
-          wget https://raw.githubusercontent.com/CodeShellDev/gh-actions/refs/heads/main/.github/helper-scripts/replace-placeholders.sh
+          wget https://raw.githubusercontent.com/CodeShellDev/gh-actions/refs/heads/main/.github/helper-scripts/replace-placeholders.sh .
+          ls
 
       - name: Replace File Placeholders in ${{ inputs.output }}
         run: |
