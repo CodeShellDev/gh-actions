@@ -1,0 +1,105 @@
+name: Build & Push Image
+
+on:
+  workflow_call:
+    inputs:
+      username:
+        required: false
+        type: string
+        default: ${{ github.repository_owner }}
+
+      registry:
+        required: true
+        type: string
+
+      image:
+        required: false
+        type: string
+        default: ${{ github.repository }}
+
+      flavor:
+        required: false
+        type: string
+        default: |
+          latest=false
+
+      tags:
+        required: false
+        type: string
+        default: |
+          type=semver,pattern=v{{major}}
+          type=semver,pattern=v{{version}}
+          type=semver,pattern=v{{major}}.{{minor}}
+          type=semver,pattern=latest
+
+      context:
+        required: false
+        type: string
+        default: .
+
+      platforms:
+        required: false
+        type: string
+        default: linux/amd64, linux/arm64
+
+    secrets:
+      GH_PCKG_TOKEN:
+        required: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Cross-Compile Go binaries
+        run: |
+          platforms="${{ inputs.platforms }}"
+
+          IFS=', ' read -ra platforms <<< "$platforms"
+
+          for platform in "${platforms[@]}"; do
+              IFS='/' read -ra platformData <<< "$platform"
+
+              os="${platformData[0]}"
+              arch="${platformData[1]}"
+
+              path="dist/$os/$arch"
+
+              mkdir -p "$path"
+
+              GOOS="$os" GOARCH="$arch" CGO_ENABLED=0 go build -ldflags="-w -s" -o "$path" .
+          done
+
+      - name: Login to Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ inputs.registry }}
+          username: ${{ inputs.username }}
+          password: ${{ secrets.GH_PCKG_TOKEN }}
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract Labels and Tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ inputs.registry }}/${{ inputs.image }}
+          flavor: ${{ inputs.flavor }}
+
+      - name: Build and Push Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.context }}
+          platforms: ${{ inputs.platforms }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: true
