@@ -71,7 +71,7 @@ jobs:
               os="${platformData[0]}"
               arch="${platformData[1]}"
 
-              path="dist/$os/$arch"
+              path="dist/$os/$arch/app"
 
               mkdir -p "$path"
 
