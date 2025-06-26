@@ -78,9 +78,13 @@ jobs:
 
               path="dist/$os/$arch/app"
 
-              mkdir -p "$path"
+              mkdir -p "$(dirname "$path")"
+
+              echo "Created $path"
 
               GOOS="$os" GOARCH="$arch" CGO_ENABLED=0 go build -ldflags="-w -s" -o "$path" .
+
+              echo "Build Binaries for $os/$arch"
           done
 
       - name: Login to Registry
