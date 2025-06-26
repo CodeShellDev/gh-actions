@@ -73,6 +73,7 @@ jobs:
         with:
           images: ${{ inputs.registry }}/${{ inputs.image }}
           flavor: ${{ inputs.flavor }}
+          tags: ${{ inputs.tags }}
 
       - name: Build and Push Image
         uses: docker/build-push-action@v6
