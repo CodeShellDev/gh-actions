@@ -26,7 +26,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: dataaxiom/ghcr-cleanup-action@v1
+      - name: Extract Image Name
+        run: |
+          echo "PACKAGE_NAME=${{ inputs.image }}" 
+          echo "PACKAGE_NAME=${PACKAGE_NAME#*/}" >> $GITHUB_ENV
+    
+      - name: Cleanup Images
+        uses: dataaxiom/ghcr-cleanup-action@v1
         with:
           registry: https://${{ inputs.registry }}/
           token: ${{ secrets.GH_PCKG_TOKEN }}
