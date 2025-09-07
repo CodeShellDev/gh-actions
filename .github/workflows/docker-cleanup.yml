@@ -12,6 +12,11 @@ on:
         required: true
         type: string
 
+      image:
+        required: false
+        type: string
+        default: ${{ github.repository }}
+
     secrets:
       GH_PCKG_TOKEN:
         required: true
@@ -23,4 +28,7 @@ jobs:
     steps:
       - uses: dataaxiom/ghcr-cleanup-action@v1
         with:
+          token: ${{ secrets.GH_PCKG_TOKEN }}
+          owner: ${{ inputs.username }}
+          package: ${{ inputs.image }}
           delete-untagged: true
