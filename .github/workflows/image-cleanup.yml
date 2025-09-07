@@ -34,8 +34,9 @@ jobs:
       - name: Cleanup Images
         uses: dataaxiom/ghcr-cleanup-action@v1
         with:
-          registry: https://${{ inputs.registry }}/
+          registry-url: https://${{ inputs.registry }}/
           token: ${{ secrets.GH_PCKG_TOKEN }}
           owner: ${{ inputs.username }}
           package: ${{ env.PACKAGE_NAME }}
           delete-untagged: true
+          delete-orphaned-images: true
