@@ -38,5 +38,6 @@ jobs:
           token: ${{ secrets.GH_PCKG_TOKEN }}
           owner: ${{ inputs.username }}
           package: ${{ env.PACKAGE_NAME }}
+          delete-tages: sha-*
           delete-untagged: true
           delete-orphaned-images: true
