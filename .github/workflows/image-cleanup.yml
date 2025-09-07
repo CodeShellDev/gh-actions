@@ -28,6 +28,7 @@ jobs:
     steps:
       - uses: dataaxiom/ghcr-cleanup-action@v1
         with:
+          registry: ${{ inputs.registry }}
           token: ${{ secrets.GH_PCKG_TOKEN }}
           owner: ${{ inputs.username }}
           package: ${{ inputs.image }}
