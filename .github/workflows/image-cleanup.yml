@@ -31,5 +31,5 @@ jobs:
           registry: https://${{ inputs.registry }}/
           token: ${{ secrets.GH_PCKG_TOKEN }}
           owner: ${{ inputs.username }}
-          package: ${{ replace(inputs.image, inputs.username + '/', '') }}
+          package: ${{ replace(inputs.image, format('{0}/', inputs.username), '') }}
           delete-untagged: true
