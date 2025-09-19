@@ -25,7 +25,7 @@ for placeholder in $placeholders; do
         escaped_content=$(printf '%s' "$file_content" | perl -pe 's/([\\\/])/\\$1/g; s/\n/\\n/g;')
         escaped_placeholder=$(printf '%s' "$placeholder" | perl -pe 's/([\\\/])/\\$1/g; s/\n/\\n/g;')
         
-        content=$(perl -pe "s/\{\s*\{\s*file\.$placeholder\s*\}\s*\}/\Q$file_content\E/g" <<< "$content")
+        content=$(printf '%s' "$content" | perl -pe "s/{\s*{\s*file\.${escaped_placeholder}\s*}\s*}/$escaped_content/g")
     else
         echo "Warning: File '$placeholder' not found, skipping."
     fi
