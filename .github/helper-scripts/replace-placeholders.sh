@@ -22,7 +22,7 @@ for placeholder in $placeholders; do
         file_content=$(<"$placeholder")
         
         # Escape special characters
-        escaped_content=$(printf '%s' "$file_content" | perl -pe 's/([\\\/])/\\$1/g; s/\n/\\n/g;')
+        escaped_content=$(printf '%s' "$file_content" | perl -pe 's/([\\\/\$])/\\$1/g; s/\n/\\n/g;')
         escaped_placeholder=$(printf '%s' "$placeholder" | perl -pe 's/([\\\/])/\\$1/g; s/\n/\\n/g;')
         
         content=$(printf '%s' "$content" | perl -pe "s/{\s*{\s*file\.${escaped_placeholder}\s*}\s*}/$escaped_content/g")
