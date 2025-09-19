@@ -32,6 +32,6 @@ for placeholder in $placeholders; do
 done
 
 # Write to destination file
-printf '%b\n' "$content" > "$DEST_FILE"
+printf '%s\n' "$content" > "$DEST_FILE"
 
 echo "Replacements complete. Output written to '$DEST_FILE'."
