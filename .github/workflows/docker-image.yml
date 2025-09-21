@@ -21,16 +21,15 @@ on:
         required: false
         type: string
         default: |
-          latest=false
+          latest=true
 
       tags:
         required: false
         type: string
         default: |
-          type=semver,pattern=v{{major}}
           type=semver,pattern=v{{version}}
           type=semver,pattern=v{{major}}.{{minor}}
-          type=semver,pattern=latest
+          type=semver,pattern=v{{major}}
 
       context:
         required: false
