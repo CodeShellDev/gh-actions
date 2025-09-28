@@ -11,7 +11,7 @@ on:
       output:
         required: false
         type: string
-        default: "*"
+        default: docs/
 
     secrets:
       GH_TOKEN:
