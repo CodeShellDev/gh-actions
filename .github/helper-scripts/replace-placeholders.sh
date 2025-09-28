@@ -82,7 +82,7 @@ elif [[ -d "$SOURCE" ]]; then
 
             echo "'$source_file' complete. Output written to '$dest_file'."
         
-            i=$(( i + 1 ))
+            (( i++ ))
         fi
     done
 
