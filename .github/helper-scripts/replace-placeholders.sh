@@ -40,7 +40,7 @@ write_file() {
     local dest_file="$2"
 
     # Write to destination file
-    printf '%s\n' "$templated_content" > "$dest_file"
+    printf '%s\n' "$file_content" > "$dest_file"
 }
 
 template_file() {
