@@ -66,7 +66,7 @@ if [[ -f "$SOURCE" ]]; then
     template_file "$SOURCE_FILE" "$DEST_FILE"
 elif [[ -d "$SOURCE" ]]; then
     i=0
-    find "$SOURCE" -type f -name '*.template.md' | while IFS= read -r source_file; do
+    while IFS= read -r source_file; do
         file_content=$(<"$source_file")
 
         first_line=$(printf '%s\n' "$file_content" | head -n 1)
@@ -84,7 +84,7 @@ elif [[ -d "$SOURCE" ]]; then
         
             (( i++ ))
         fi
-    done
+    done < <(find "$SOURCE" -type f -name '*.template.md')
 
     if [[ $i -eq 0 ]]; then
         echo "Source '$SOURCE' does not contain any '*.template.md'!"
