@@ -2,16 +2,41 @@
 
 # Usage: ./replace_placeholders.sh source_file destination_file
 
-SOURCE_FILE="$1"
+SOURCE="$1"
 DEST_FILE="$2"
 
-# Check if source file exists
-if [[ ! -f "$SOURCE_FILE" ]]; then
-    echo "Source file '$SOURCE_FILE' does not exist!"
+if [[ -f "$SOURCE" ]]; then
+    template_file "$SOURCE_FILE" "$DEST_FILE"
+elif [[ -d "$SOURCE" ]]; then
+    i=0
+    find "$SOURCE" -type f -name '*.template.md' | while IFS= read -r source_file; do
+        file_content=$(<"$source_file")
+
+        first_line=$(printf '%s\n' "$file_content" | head -n 1)
+
+        dest_path=$(echo "$first_line" | sed -n 's/^[[:space:]]*>>\([[:alnum:]_.-]\+\)[[:space:]]*$/\1/p')
+
+        file_content=$(printf '%s' "$file_content" | tail -n +2)
+        
+        templated_content=$(template "$file_content")
+
+        printf '%s\n' "$templated_content" > "$dest_file"
+
+        echo "'$source_file' complete. Output written to '$dest_file'."
+        
+        i++
+    done
+
+    if [[ $i -eq 0 ]]; then
+        echo "Source '$SOURCE' does not contain any '*.template.md'!"
+        exit 1
+    fi
+else
+    echo "Source '$SOURCE' does not exist!"
     exit 1
 fi
 
-template_file() {
+template() {
     local content="$1"
     
     # Extract unique placeholders: match { { file.xxx } } with arbitrary spaces
@@ -19,36 +44,44 @@ template_file() {
     placeholders=$(printf '%s' "$content" | grep -oP '\{\s*{\s*file\.(.*)\s*}\s*}' | sed -E 's/\{\s*\{\s*file\.//;s/\s*\}\s*\}//' | sort -u)
 
     for placeholder in $placeholders; do
+        local file_content
+
         if [[ -f "$placeholder" ]]; then
-            local file_content
             file_content=$(<"$placeholder")
         
             if [[ "$placeholder" == *.template.* ]]; then
                 # Template further
-                file_content=$(template_file "$file_content")
+                file_content=$(template "$file_content")
             fi
-                       
-            # Escape special characters
-            local escaped_content
-            local escaped_placeholder
-            escaped_content=$(printf '%s' "$file_content" | perl -pe 's/([\\\/\$])/\\$1/g; s/\n/\\n/g;')
-            escaped_placeholder=$(printf '%s' "$placeholder" | perl -pe 's/([\\\/])/\\$1/g; s/\n/\\n/g;')
-        
-            content=$(printf '%s' "$content" | perl -pe "s/{\s*{\s*file\.${escaped_placeholder}\s*}\s*}/$escaped_content/g")
         else
-            content="File not found: '$placeholder'"
+            file_content="File not found: '$placeholder'."
         fi
+
+        # Escape special characters
+        local escaped_content
+        local escaped_placeholder
+        escaped_content=$(printf '%s' "$file_content" | perl -pe 's/([\\\/\$])/\\$1/g; s/\n/\\n/g;')
+        escaped_placeholder=$(printf '%s' "$placeholder" | perl -pe 's/([\\\/])/\\$1/g; s/\n/\\n/g;')
+        
+        content=$(printf '%s' "$content" | perl -pe "s/{\s*{\s*file\.${escaped_placeholder}\s*}\s*}/$escaped_content/g")
     done
 
     printf '%s' "$content"
 }
 
-# Read the entire source file into a variable
-file_content=$(<"$SOURCE_FILE")
+template_file() {
+    local source_file="$1"
+    local dest_file="$2"
 
-templated_content=$(template_file "$file_content")
+    # Read the entire source file into a variable
+    local file_content
+    file_content=$(<"$source_file")
 
-# Write to destination file
-printf '%s\n' "$templated_content" > "$DEST_FILE"
+    local templated_content
+    templated_content=$(template "$file_content")
 
-echo "Replacements complete. Output written to '$DEST_FILE'."
+    # Write to destination file
+    printf '%s\n' "$templated_content" > "$dest_file"
+
+    echo "'$source_file' complete. Output written to '$dest_file'."
+}
