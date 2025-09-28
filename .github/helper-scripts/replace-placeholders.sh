@@ -12,26 +12,39 @@ if [[ ! -f "$SOURCE_FILE" ]]; then
 fi
 
 # Read the entire source file into a variable
-content=$(<"$SOURCE_FILE")
+file_content=$(<"$SOURCE_FILE")
 
-# Extract unique placeholders: match { { file.xxx } } with arbitrary spaces
-placeholders=$(grep -oP '\{\s*{\s*file\.(.*)\s*}\s*}' "$SOURCE_FILE" | sed -E 's/\{\s*\{\s*file\.//;s/\s*\}\s*\}//' | sort -u)
+templated_content=$(template_file "$file_content")
 
-for placeholder in $placeholders; do
-    if [[ -f "$placeholder" ]]; then
-        file_content=$(<"$placeholder")
+template_file() {
+    content="$1"
+    
+    # Extract unique placeholders: match { { file.xxx } } with arbitrary spaces
+    placeholders=$(printf '%s' "$content" | grep -oP '\{\s*{\s*file\.(.*)\s*}\s*}' | sed -E 's/\{\s*\{\s*file\.//;s/\s*\}\s*\}//' | sort -u)
+
+    for placeholder in $placeholders; do
+        if [[ -f "$placeholder" ]]; then
+            file_content=$(<"$placeholder")
         
-        # Escape special characters
-        escaped_content=$(printf '%s' "$file_content" | perl -pe 's/([\\\/\$])/\\$1/g; s/\n/\\n/g;')
-        escaped_placeholder=$(printf '%s' "$placeholder" | perl -pe 's/([\\\/])/\\$1/g; s/\n/\\n/g;')
+            if [[ "$placeholder" == *.template.* ]]; then
+                # Template further
+                file_content=$(template_file "$file_content")
+            fi
+                       
+            # Escape special characters
+            escaped_content=$(printf '%s' "$file_content" | perl -pe 's/([\\\/\$])/\\$1/g; s/\n/\\n/g;')
+            escaped_placeholder=$(printf '%s' "$placeholder" | perl -pe 's/([\\\/])/\\$1/g; s/\n/\\n/g;')
         
-        content=$(printf '%s' "$content" | perl -pe "s/{\s*{\s*file\.${escaped_placeholder}\s*}\s*}/$escaped_content/g")
-    else
-        echo "Warning: File '$placeholder' not found, skipping."
-    fi
-done
+            content=$(printf '%s' "$content" | perl -pe "s/{\s*{\s*file\.${escaped_placeholder}\s*}\s*}/$escaped_content/g")
+        else
+            content="File not found: '$placeholder'"
+        fi
+    done
+
+    printf '%s' "$content"
+}
 
 # Write to destination file
-printf '%s\n' "$content" > "$DEST_FILE"
+printf '%s\n' "$templated_content" > "$DEST_FILE"
 
 echo "Replacements complete. Output written to '$DEST_FILE'."
