@@ -12,13 +12,15 @@ if [[ ! -f "$SOURCE_FILE" ]]; then
 fi
 
 template_file() {
-    content="$1"
+    local content="$1"
     
     # Extract unique placeholders: match { { file.xxx } } with arbitrary spaces
+    local placeholders
     placeholders=$(printf '%s' "$content" | grep -oP '\{\s*{\s*file\.(.*)\s*}\s*}' | sed -E 's/\{\s*\{\s*file\.//;s/\s*\}\s*\}//' | sort -u)
 
     for placeholder in $placeholders; do
         if [[ -f "$placeholder" ]]; then
+            local file_content
             file_content=$(<"$placeholder")
         
             if [[ "$placeholder" == *.template.* ]]; then
@@ -27,6 +29,8 @@ template_file() {
             fi
                        
             # Escape special characters
+            local escaped_content
+            local escaped_placeholder
             escaped_content=$(printf '%s' "$file_content" | perl -pe 's/([\\\/\$])/\\$1/g; s/\n/\\n/g;')
             escaped_placeholder=$(printf '%s' "$placeholder" | perl -pe 's/([\\\/])/\\$1/g; s/\n/\\n/g;')
         
