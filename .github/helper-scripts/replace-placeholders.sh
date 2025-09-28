@@ -2,40 +2,6 @@
 
 # Usage: ./replace_placeholders.sh source_file destination_file
 
-SOURCE="$1"
-DEST_FILE="$2"
-
-if [[ -f "$SOURCE" ]]; then
-    template_file "$SOURCE_FILE" "$DEST_FILE"
-elif [[ -d "$SOURCE" ]]; then
-    i=0
-    find "$SOURCE" -type f -name '*.template.md' | while IFS= read -r source_file; do
-        file_content=$(<"$source_file")
-
-        first_line=$(printf '%s\n' "$file_content" | head -n 1)
-
-        dest_path=$(echo "$first_line" | sed -n 's/^[[:space:]]*>>\([[:alnum:]_.-]\+\)[[:space:]]*$/\1/p')
-
-        file_content=$(printf '%s' "$file_content" | tail -n +2)
-        
-        templated_content=$(template "$file_content")
-
-        printf '%s\n' "$templated_content" > "$dest_file"
-
-        echo "'$source_file' complete. Output written to '$dest_file'."
-        
-        i++
-    done
-
-    if [[ $i -eq 0 ]]; then
-        echo "Source '$SOURCE' does not contain any '*.template.md'!"
-        exit 1
-    fi
-else
-    echo "Source '$SOURCE' does not exist!"
-    exit 1
-fi
-
 template() {
     local content="$1"
     
@@ -69,6 +35,14 @@ template() {
     printf '%s' "$content"
 }
 
+write_file() {
+    local file_content="$1"
+    local dest_file="$2"
+
+    # Write to destination file
+    printf '%s\n' "$templated_content" > "$dest_file"
+}
+
 template_file() {
     local source_file="$1"
     local dest_file="$2"
@@ -80,8 +54,41 @@ template_file() {
     local templated_content
     templated_content=$(template "$file_content")
 
-    # Write to destination file
-    printf '%s\n' "$templated_content" > "$dest_file"
+    write_file "$templated_content" "$dest_file"
 
     echo "'$source_file' complete. Output written to '$dest_file'."
 }
+
+SOURCE="$1"
+DEST_FILE="$2"
+
+if [[ -f "$SOURCE" ]]; then
+    template_file "$SOURCE_FILE" "$DEST_FILE"
+elif [[ -d "$SOURCE" ]]; then
+    i=0
+    find "$SOURCE" -type f -name '*.template.md' | while IFS= read -r source_file; do
+        file_content=$(<"$source_file")
+
+        first_line=$(printf '%s\n' "$file_content" | head -n 1)
+
+        dest_file=$(echo "$first_line" | sed -n 's/^[[:space:]]*>>\([[:alnum:]_.-]\+\)[[:space:]]*$/\1/p')
+
+        file_content=$(printf '%s' "$file_content" | tail -n +2)
+        
+        templated_content=$(template "$file_content")
+
+        write_file "$templated_content" "$dest_file"
+
+        echo "'$source_file' complete. Output written to '$dest_file'."
+        
+        i=$(( i + 1 ))
+    done
+
+    if [[ $i -eq 0 ]]; then
+        echo "Source '$SOURCE' does not contain any '*.template.md'!"
+        exit 1
+    fi
+else
+    echo "Source '$SOURCE' does not exist!"
+    exit 1
+fi
