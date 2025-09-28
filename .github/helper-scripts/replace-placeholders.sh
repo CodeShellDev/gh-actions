@@ -73,15 +73,17 @@ elif [[ -d "$SOURCE" ]]; then
 
         dest_file=$(echo "$first_line" | sed -n 's/^[[:space:]]*>>\([[:graph:]]\+\)[[:space:]]*$/\1/p')
 
-        file_content=$(printf '%s' "$file_content" | tail -n +2)
+        if [[ -n "$dest_file" ]]; then
+            file_content=$(printf '%s' "$file_content" | tail -n +2)
         
-        templated_content=$(template "$file_content")
+            templated_content=$(template "$file_content")
 
-        write_file "$templated_content" "$dest_file"
+            write_file "$templated_content" "$dest_file"
 
-        echo "'$source_file' complete. Output written to '$dest_file'."
+            echo "'$source_file' complete. Output written to '$dest_file'."
         
-        i=$(( i + 1 ))
+            i=$(( i + 1 ))
+        fi
     done
 
     if [[ $i -eq 0 ]]; then
