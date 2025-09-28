@@ -1,0 +1,27 @@
+name: Update Docs
+
+on:
+  workflow_call:
+    inputs:
+      template:
+        required: false
+        type: string
+        default: .github/templates/docs/
+
+      output:
+        required: false
+        type: string
+        default: docs/README.md
+
+    secrets:
+      GH_TOKEN:
+        required: true
+
+jobs:
+  update-docs:
+    uses: codeshelldev/gh-actions/.github/workflows/templating.yml@main
+    with:
+      template: ${{ inputs.template }}
+      output: ${{ inputs.output }}
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
