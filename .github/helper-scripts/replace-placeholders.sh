@@ -11,11 +11,6 @@ if [[ ! -f "$SOURCE_FILE" ]]; then
     exit 1
 fi
 
-# Read the entire source file into a variable
-file_content=$(<"$SOURCE_FILE")
-
-templated_content=$(template_file "$file_content")
-
 template_file() {
     content="$1"
     
@@ -43,6 +38,11 @@ template_file() {
 
     printf '%s' "$content"
 }
+
+# Read the entire source file into a variable
+file_content=$(<"$SOURCE_FILE")
+
+templated_content=$(template_file "$file_content")
 
 # Write to destination file
 printf '%s\n' "$templated_content" > "$DEST_FILE"
