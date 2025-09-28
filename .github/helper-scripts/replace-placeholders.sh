@@ -39,6 +39,9 @@ write_file() {
     local file_content="$1"
     local dest_file="$2"
 
+    # Create Folders
+    mkdir -p "$(dirname "$dest_file")"
+
     # Write to destination file
     printf '%s\n' "$file_content" > "$dest_file"
 }
