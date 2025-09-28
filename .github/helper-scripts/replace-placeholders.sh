@@ -71,7 +71,7 @@ elif [[ -d "$SOURCE" ]]; then
 
         first_line=$(printf '%s\n' "$file_content" | head -n 1)
 
-        dest_file=$(echo "$first_line" | sed -n 's/^[[:space:]]*>>\([[:alnum:]_.-]\+\)[[:space:]]*$/\1/p')
+        dest_file=$(echo "$first_line" | sed -n 's/^[[:space:]]*>>\([[:alnum:]_.\/-]\+\)[[:space:]]*$/\1/p')
 
         file_content=$(printf '%s' "$file_content" | tail -n +2)
         
