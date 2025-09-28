@@ -4,6 +4,12 @@
 
 template() {
     local content="$1"
+
+    header=$(get_header "$content")
+
+    if [[ -n "$header" ]]; then
+        content=$(printf '%s' "$content" | tail -n +2)
+    fi
     
     # Extract unique placeholders: match { { file.xxx } } with arbitrary spaces
     local placeholders
@@ -35,6 +41,18 @@ template() {
     printf '%s' "$content"
 }
 
+get_header() {
+    local str="$1"
+
+    local first_line
+    first_line=$(printf '%s' "$str" | head -n 1)
+
+    local dest_file
+    dest_file=$(echo "$first_line" | sed -n 's/^[[:space:]]*>>\([[:graph:]]\+\)[[:space:]]*$/\1/p')
+
+    echo "$dest_file"
+}
+
 write_file() {
     local file_content="$1"
     local dest_file="$2"
@@ -43,7 +61,7 @@ write_file() {
     mkdir -p "$(dirname "$dest_file")"
 
     # Write to destination file
-    printf '%s\n' "$file_content" > "$dest_file"
+    printf '%s' "$file_content" > "$dest_file"
 }
 
 template_file() {
@@ -66,15 +84,13 @@ SOURCE="$1"
 DEST_FILE="$2"
 
 if [[ -f "$SOURCE" ]]; then
-    template_file "$SOURCE_FILE" "$DEST_FILE"
+    template_file "$SOURCE" "$DEST_FILE"
 elif [[ -d "$SOURCE" ]]; then
     i=0
     while IFS= read -r source_file; do
         file_content=$(<"$source_file")
 
-        first_line=$(printf '%s\n' "$file_content" | head -n 1)
-
-        dest_file=$(echo "$first_line" | sed -n 's/^[[:space:]]*>>\([[:graph:]]\+\)[[:space:]]*$/\1/p')
+        dest_file=$(get_header "$file_content")
 
         if [[ -n "$dest_file" ]]; then
             file_content=$(printf '%s' "$file_content" | tail -n +2)
