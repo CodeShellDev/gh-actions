@@ -7,9 +7,34 @@ on:
         required: true
         type: string
 
+      source:
+        required: false
+        type: string
+        default: "."
+
       output:
         required: true
         type: string
+
+      recursive:
+        required: false
+        type: boolean
+        default: false
+
+      flatten:
+        required: false
+        type: boolean
+        default: false
+
+      match:
+        required: false
+        type: string
+        default: ".*"
+
+      whitespace:
+        required: false
+        type: string
+        default: "t,l"
 
     secrets:
       GH_TOKEN:
@@ -23,14 +48,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get Helper Script
+      - name: Download goplater
         run: |
-          curl https://raw.githubusercontent.com/CodeShellDev/gh-actions/refs/heads/main/.github/helper-scripts/replace-placeholders.sh -o ./replace-placeholders.sh
+          curl https://github.com/CodeShellDev/goplater/releases/download/latest/goplater-linux-amd64 -o ./goplater
 
-      - name: Replace File Placeholders in ${{ inputs.output }}
+      - name: Template ${{ inputs.output }}
         run: |
-          bash ./replace-placeholders.sh ${{ inputs.template }} ${{ inputs.output }}
-
+          ./goplater template \
+            "${{ inputs.template }}" \
+            -o="${{ inputs.output }}" \
+            -s="${{ inputs.source }}" \
+            -r="${{ inputs.recursive }}" \
+            -f="${{ inputs.flatten }}" \
+            -w="${{ inputs.whitespace }}"
+              
       - name: Commit & Push ${{ inputs.output }}
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
