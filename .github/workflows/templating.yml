@@ -50,11 +50,11 @@ jobs:
 
       - name: Download goplater
         run: |
-          curl https://github.com/CodeShellDev/goplater/releases/download/latest/goplater-linux-amd64 -o goplater
+          curl https://github.com/CodeShellDev/goplater/releases/download/latest/goplater-linux-amd64 -o ./goplater
 
       - name: Make executable
         run: |
-          chmod +x goplater
+          chmod +x ./goplater
 
       - name: Template ${{ inputs.template }}
         run: |
