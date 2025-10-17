@@ -59,12 +59,12 @@ jobs:
       - name: Template ${{ inputs.template }}
         run: |
           ./goplater template \
-            "${{ inputs.template }}" \
-            -o="${{ inputs.output }}" \
-            -s="${{ inputs.source }}" \
+            ${{ inputs.template }} \
+            -o=${{ inputs.output }} \
+            -s=${{ inputs.source }} \
             -r=${{ inputs.recursive }} \
             -f=${{ inputs.flatten }} \
-            -w="${{ inputs.whitespace }}"
+            -w=${{ inputs.whitespace }}
               
       - name: Commit & Push ${{ inputs.output }}
         env:
