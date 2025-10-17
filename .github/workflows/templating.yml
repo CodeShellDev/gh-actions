@@ -50,7 +50,7 @@ jobs:
 
       - name: Download goplater
         run: |
-          curl -L https://github.com/CodeShellDev/goplater/releases/download/latest/goplater-linux-amd64 -o goplater
+          curl -L https://github.com/CodeShellDev/goplater/releases/latest/download/goplater-linux-amd64 -o goplater
 
       - name: Make executable
         run: |
