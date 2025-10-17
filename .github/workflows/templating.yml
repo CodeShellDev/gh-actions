@@ -74,7 +74,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          rm replace-placeholders.sh
+          rm goplater
 
           git add ${{ inputs.output }}
           if git diff --cached --quiet; then
