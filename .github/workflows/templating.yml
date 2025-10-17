@@ -58,7 +58,7 @@ jobs:
 
       - name: Template ${{ inputs.template }}
         run: |
-          goplater template \
+          ./goplater template \
             "${{ inputs.template }}" \
             -o="${{ inputs.output }}" \
             -s="${{ inputs.source }}" \
