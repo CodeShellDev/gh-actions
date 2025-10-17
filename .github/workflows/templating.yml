@@ -50,16 +50,16 @@ jobs:
 
       - name: Download goplater
         run: |
-          curl https://github.com/CodeShellDev/goplater/releases/download/latest/goplater-linux-amd64 -o ./goplater
+          curl https://github.com/CodeShellDev/goplater/releases/download/latest/goplater-linux-amd64 -o goplater
 
-      - name: Template ${{ inputs.output }}
+      - name: Template ${{ inputs.template }}
         run: |
-          ./goplater template \
+          goplater template \
             "${{ inputs.template }}" \
             -o="${{ inputs.output }}" \
             -s="${{ inputs.source }}" \
-            -r="${{ inputs.recursive }}" \
-            -f="${{ inputs.flatten }}" \
+            -r=${{ inputs.recursive }} \
+            -f=${{ inputs.flatten }} \
             -w="${{ inputs.whitespace }}"
               
       - name: Commit & Push ${{ inputs.output }}
