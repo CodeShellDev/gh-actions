@@ -64,7 +64,8 @@ jobs:
             -s=${{ inputs.source }} \
             -r=${{ inputs.recursive }} \
             -f=${{ inputs.flatten }} \
-            -w=${{ inputs.whitespace }}
+            -w=${{ inputs.whitespace }} \
+            -i
               
       - name: Commit & Push ${{ inputs.output }}
         env:
