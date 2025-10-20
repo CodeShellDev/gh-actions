@@ -18,8 +18,9 @@ on:
         required: true
 
 jobs:
-  update-readme:
+  readme:
     uses: codeshelldev/gh-actions/.github/workflows/templating.yml@main
+    name: Readme
     with:
       template: ${{ inputs.template }}
       output: ${{ inputs.output }}
