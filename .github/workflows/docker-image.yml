@@ -46,8 +46,9 @@ on:
         required: true
 
 jobs:
-  update:
+  build:
     runs-on: ubuntu-latest
+    name: Build & Push
 
     steps:
       - name: Checkout Repository
