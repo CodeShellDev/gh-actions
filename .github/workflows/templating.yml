@@ -41,8 +41,9 @@ on:
         required: true
 
 jobs:
-  apply-template:
+  template:
     runs-on: ubuntu-latest
+    name: Template
 
     steps:
       - name: Checkout repository
