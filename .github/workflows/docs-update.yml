@@ -18,8 +18,9 @@ on:
         required: true
 
 jobs:
-  update-docs:
+  docs:
     uses: codeshelldev/gh-actions/.github/workflows/templating.yml@main
+    name: Docs
     with:
       template: ${{ inputs.template }}
       output: ${{ inputs.output }}
