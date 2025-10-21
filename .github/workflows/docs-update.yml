@@ -3,12 +3,12 @@ name: Update Documentation
 on:
   workflow_call:
     inputs:
-      template:
+      template-path:
         required: true
         type: string
         default: docs/
 
-      output:
+      output-path:
         required: true
         type: string
         default: docs/
@@ -22,8 +22,8 @@ jobs:
     uses: codeshelldev/gh-actions/.github/workflows/templating.yml@main
     name: Docs
     with:
-      template: ${{ inputs.template }}
-      output: ${{ inputs.output }}
+      template: ${{ inputs.template-path }}
+      output: ${{ inputs.output-path }}
       recursive: true
       source: ${{ inputs.template }}
     secrets:
