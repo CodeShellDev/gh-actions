@@ -36,6 +36,11 @@ on:
         type: string
         default: "t,l"
 
+      push:
+        required: false
+        type: boolean
+        default: true
+
     secrets:
       GH_TOKEN:
         required: true
@@ -71,6 +76,7 @@ jobs:
       - name: Commit & Push ${{ inputs.output }}
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        if: ${{ inputs.push == true }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
