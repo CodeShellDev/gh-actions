@@ -56,7 +56,7 @@ jobs:
         with:
           ref: ${{ inputs.template-branch }}
           name: docs-output
-          path: ${{ inputs.output-path }}
+          path: ../${{ inputs.output-path }}
 
       - name: Prepare & Commit changes
         env:
@@ -82,7 +82,7 @@ jobs:
 
           # Sync artifact into this branch
           echo "Copying templated output..."
-          rsync -a --delete ${{ inputs.output-path }}/ ./${{ inputs.output-path }}/
+          rsync -a --delete ../${{ inputs.output-path }}/ ./${{ inputs.output-path }}/
 
           git add ${{ inputs.output-path }}
           if git diff --cached --quiet; then
