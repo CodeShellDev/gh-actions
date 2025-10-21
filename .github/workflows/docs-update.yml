@@ -4,12 +4,12 @@ on:
   workflow_call:
     inputs:
       template:
-        required: false
+        required: true
         type: string
-        default: docs-src/
+        default: docs/
 
       output:
-        required: false
+        required: true
         type: string
         default: docs/
 
