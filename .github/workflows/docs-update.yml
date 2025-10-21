@@ -6,12 +6,20 @@ on:
       template-path:
         required: true
         type: string
-        default: docs/
 
       output-path:
         required: true
         type: string
-        default: docs/
+
+      template-branch:
+        required: false
+        type: string
+        default: docs
+
+      output-branch:
+        required: false
+        type: string
+        default: docs-build
 
     secrets:
       GH_TOKEN:
@@ -26,5 +34,51 @@ jobs:
       output: ${{ inputs.output-path }}
       recursive: true
       source: ${{ inputs.template }}
+      push: false
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  sync:
+    name: Sync to ${{ inputs.output-branch }} branch
+    runs-on: ubuntu-latest
+    needs: docs
+
+    steps:
+      - name: Checkout ${{ inputs.template-branch }} branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.template-branch }}
+          fetch-depth: 0
+
+      - name: Setup Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Prepare ${{ inputs.output-branch }} branch
+        run: |
+          echo "Syncing contents of '${{ inputs.output-path }}' to branch '${{ inputs.output-branch }}'"
+
+          # Fetch or create output branch
+          git fetch origin ${{ inputs.output-branch }} || true
+          git worktree add ../${{ inputs.output-branch }} ${{ inputs.output-branch }} || git worktree add --orphan ../${{ inputs.output-branch }} ${{ inputs.output-branch }}
+          
+          # Copy output folder contents (or all files if you want full sync)
+          rsync -av --delete --exclude '.git' . ../${{ inputs.output-branch }}/
+          
+          # Optional: if you only want to sync the built docs subfolder, do:
+          # rsync -av --delete --exclude '.git' "${{ inputs.output-path }}"/ ../${{ inputs.output-branch }}/
+
+          # Commit and push
+          cd ../${{ inputs.output-branch }}
+          git add --all
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Sync from ${{ inputs.template-branch }} branch"
+            git push origin HEAD:${{ inputs.output-branch }} --force
+          fi
+
+          # Cleanup worktree
+          cd ..
+          git worktree remove ../${{ inputs.output-branch }}
