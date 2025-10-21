@@ -64,11 +64,13 @@ jobs:
           else
             echo "Branch ${{ inputs.output-branch }} does not exist. Creating..."
             git switch --orphan ${{ inputs.output-branch }}
-            git rm -rf .
+            if git ls-files | grep .; then
+              git rm -rf .
+            fi
           fi
 
           # Copy the newly generated output to this branch
-          rsync -a --delete ../${{ inputs.output-path }}/ ./${{ inputs.output-path }}/
+          rsync -a --delete ../${{ inputs.output-path }} ./${{ inputs.output-path }}
 
           # Stage only the output folder
           git add ${{ inputs.output-path }}
