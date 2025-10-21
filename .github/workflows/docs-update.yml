@@ -50,35 +50,33 @@ jobs:
           ref: ${{ inputs.template-branch }}
           fetch-depth: 0
 
-      - name: Setup Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
       - name: Prepare ${{ inputs.output-branch }} branch
         run: |
           echo "Syncing contents of '${{ inputs.output-path }}' to branch '${{ inputs.output-branch }}'"
 
-          # Fetch or create output branch
-          git fetch origin ${{ inputs.output-branch }} || true
-          git worktree add ../${{ inputs.output-branch }} ${{ inputs.output-branch }} || git worktree add --orphan ../${{ inputs.output-branch }} ${{ inputs.output-branch }}
-          
-          # Copy output folder contents (or all files if you want full sync)
-          rsync -av --delete --exclude '.git' . ../${{ inputs.output-branch }}/
-          
-          # Optional: if you only want to sync the built docs subfolder, do:
-          # rsync -av --delete --exclude '.git' "${{ inputs.output-path }}"/ ../${{ inputs.output-branch }}/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Commit and push
-          cd ../${{ inputs.output-branch }}
-          git add --all
+          if git ls-remote --exit-code origin "$BRANCH" >/dev/null 2>&1; then
+            echo "Branch ${{ inputs.output-branch }} exists. Fetching..."
+            git fetch origin ${{ inputs.output-branch }}
+            git switch ${{ inputs.output-branch }}
+          else
+            echo "Branch ${{ inputs.output-branch }} does not exist. Creating..."
+            git switch --orphan ${{ inputs.output-branch }}
+            git rm -rf .
+          fi
+
+          # Copy the newly generated output to this branch
+          rsync -a --delete ../${{ inputs.output-path }}/ ./${{ inputs.output-path }}/
+
+          # Stage only the output folder
+          git add ${{ inputs.output-path }}
+
+          # Commit and push only if there are changes
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "Sync from ${{ inputs.template-branch }} branch"
-            git push origin HEAD:${{ inputs.output-branch }} --force
+            git commit -m "Update ${{ inputs.output-path }}"
+            git push -f origin HEAD:${{ inputs.output-branch }}
           fi
-
-          # Cleanup worktree
-          cd ..
-          git worktree remove ../${{ inputs.output-branch }}
