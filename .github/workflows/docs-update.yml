@@ -84,7 +84,7 @@ jobs:
           echo "Copying templated output..."
           rsync -a --delete ../${{ inputs.output-path }}/ ./${{ inputs.output-path }}/
 
-          git add ${{ inputs.output-path }}
+          git add .
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
