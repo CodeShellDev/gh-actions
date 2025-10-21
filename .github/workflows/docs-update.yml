@@ -31,7 +31,7 @@ jobs:
     name: Docs
     with:
       template: ${{ inputs.template-path }}
-      output: ${{ inputs.output-path }}-output
+      output: /tmp/${{ inputs.output-path }}
       recursive: true
       source: ${{ inputs.template }}
       push: false
