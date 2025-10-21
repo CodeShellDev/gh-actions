@@ -35,6 +35,7 @@ jobs:
       recursive: true
       source: ${{ inputs.template }}
       push: false
+      artifact: docs-output
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
@@ -44,41 +45,44 @@ jobs:
     needs: docs
 
     steps:
-      - name: Checkout ${{ inputs.template-branch }} branch
+      - name: Checkout ${{ inputs.output-branch }} branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.template-branch }}
+          ref: ${{ inputs.output-branch }}
           fetch-depth: 0
+          token: ${{ secrets.GH_TOKEN }}
 
-      - name: Prepare ${{ inputs.output-branch }} branch
+      - name: Download templated output
+        uses: actions/download-artifact@v4
+        with:
+          name: templated-output
+          path: ${{ inputs.output-path }}
+
+      - name: Prepare & Commit changes
+        env:
+          BRANCH: ${{ inputs.output-branch }}
         run: |
-          echo "Syncing contents of '${{ inputs.output-path }}' to branch '${{ inputs.output-branch }}'"
+          echo "Syncing '${{ inputs.output-path }}' to '${{ inputs.output-branch }}'"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if git ls-remote --exit-code origin "$BRANCH" >/dev/null 2>&1; then
-            echo "Branch ${{ inputs.output-branch }} exists. Fetching..."
-            git fetch origin ${{ inputs.output-branch }}
-            git switch ${{ inputs.output-branch }}
+          # Create branch if missing
+          if ! git rev-parse --verify $BRANCH >/dev/null 2>&1; then
+            echo "Branch $BRANCH does not exist. Creating..."
+            git switch --orphan $BRANCH
+            git rm -rf . || true
           else
-            echo "Branch ${{ inputs.output-branch }} does not exist. Creating..."
-            git switch --orphan ${{ inputs.output-branch }}
-            if git ls-files | grep .; then
-              git rm -rf .
-            fi
+            git switch $BRANCH
           fi
 
-          # Copy the newly generated output to this branch
-          rsync -a --delete ../${{ inputs.output-path }} ./${{ inputs.output-path }}
+          # Sync artifact into this branch
+          rsync -a --delete ${{ inputs.output-path }}/ ./${{ inputs.output-path }}/
 
-          # Stage only the output folder
           git add ${{ inputs.output-path }}
-
-          # Commit and push only if there are changes
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
             git commit -m "Update ${{ inputs.output-path }}"
-            git push -f origin HEAD:${{ inputs.output-branch }}
+            git push -f origin HEAD:$BRANCH
           fi
