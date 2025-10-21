@@ -20,13 +20,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.branch }}
           fetch-depth: 0
           token: ${{ secrets.GH_TOKEN }}
-
-      - name: Pull latest changes
-        run: |
-          git fetch origin ${{ inputs.branch }}
-          git reset --hard origin/${{ inputs.branch }}
 
       - uses: actions/setup-node@v4
         with:
