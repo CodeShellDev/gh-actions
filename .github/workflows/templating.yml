@@ -101,4 +101,4 @@ jobs:
         if: ${{ inputs.artifact != '' }}
         with:
           name: ${{ inputs.artifact }}
-          path: ${{ inputs.output-path }}
+          path: ${{ inputs.output }}
