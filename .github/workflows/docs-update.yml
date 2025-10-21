@@ -1,4 +1,4 @@
-name: Update Docs
+name: Update Documentation
 
 on:
   workflow_call:
@@ -6,12 +6,12 @@ on:
       template:
         required: false
         type: string
-        default: .github/templates/docs/
+        default: docs-src/
 
       output:
         required: false
         type: string
-        default: "*"
+        default: docs/
 
     secrets:
       GH_TOKEN:
@@ -24,5 +24,7 @@ jobs:
     with:
       template: ${{ inputs.template }}
       output: ${{ inputs.output }}
+      recursive: true
+      source: ${{ inputs.template }}
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
