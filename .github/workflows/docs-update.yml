@@ -48,43 +48,52 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.template-branch }}
           fetch-depth: 0
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Download templated output
         uses: actions/download-artifact@v4
         with:
-          ref: ${{ inputs.template-branch }}
           name: docs-output
-          path: ../${{ inputs.output-path }}
+          path: /tmp/docs-output
 
       - name: Prepare & Commit changes
         env:
           BRANCH: ${{ inputs.output-branch }}
+          OUTPUT_PATH: ${{ inputs.output-path }}
         run: |
-          echo "Syncing '${{ inputs.output-path }}' to '${{ inputs.output-branch }}'"
+          echo "Syncing '${OUTPUT_PATH}' to '${BRANCH}'"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Fetch remote branches
+          # Ensure we have all branches
           git fetch origin
 
-          # Check if branch exists remotely
+          # Check if the output branch exists
           if git ls-remote --exit-code origin "$BRANCH" >/dev/null 2>&1; then
             echo "Branch $BRANCH exists. Switching..."
             git switch $BRANCH
+            git pull origin $BRANCH
           else
             echo "Branch $BRANCH does not exist. Creating new orphan branch..."
             git switch --orphan $BRANCH
             git rm -rf . || true
           fi
 
-          # Sync artifact into this branch
-          echo "Copying templated output..."
-          rsync -a --delete ../${{ inputs.output-path }}/ ./${{ inputs.output-path }}/
+          # Copy all files from the template branch (so repo stays consistent)
+          echo "Syncing all files from template branch..."
+          git checkout ${{ inputs.template-branch }} -- .
 
-          git add .
+          # Overwrite docs folder with templated output
+          echo "Replacing '${OUTPUT_PATH}/' with templated version..."
+          rm -rf "${OUTPUT_PATH}"
+          mkdir -p "${OUTPUT_PATH}"
+          rsync -a /tmp/docs-output/ "${OUTPUT_PATH}/"
+
+          # Stage and push changes
+          git add -A
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
