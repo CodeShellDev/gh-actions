@@ -98,7 +98,7 @@ jobs:
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
-        if: ${{ inputs.artifacts != '' }}
+        if: ${{ inputs.artifact != '' }}
         with:
           name: ${{ inputs.artifact }}
           path: ${{ inputs.output-path }}
