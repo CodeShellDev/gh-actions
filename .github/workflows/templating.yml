@@ -126,6 +126,10 @@ jobs:
           # Fetch all branches
           git fetch origin
 
+          # Move all files to /tmp
+          mkdir -p /tmp/artifacts
+          mv * /tmp/artifacts -r
+
           # Determine target branch (default to current)
           if [ -n "$BRANCH" ]; then
             if git ls-remote --exit-code origin "$BRANCH" >/dev/null 2>&1; then
@@ -136,6 +140,9 @@ jobs:
               git switch --orphan "$BRANCH"
             fi
           fi
+
+          # Move back files
+          mv /tmp/artifacts/* . -r
 
           git add "$OUTPUT"
           if git diff --cached --quiet; then
