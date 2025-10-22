@@ -41,7 +41,7 @@ on:
         type: boolean
         default: true
 
-      push-branch:
+      output-branch:
         required: false
         type: string
         default: ""
