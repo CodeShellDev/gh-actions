@@ -128,7 +128,7 @@ jobs:
 
           # Move all files to /tmp
           mkdir -p /tmp/artifacts
-          mv * /tmp/artifacts -r
+          mv * /tmp/artifacts
 
           # Determine target branch (default to current)
           if [ -n "$BRANCH" ]; then
@@ -142,7 +142,7 @@ jobs:
           fi
 
           # Move back files
-          mv /tmp/artifacts/* . -r
+          mv /tmp/artifacts/* .
 
           git add "$OUTPUT"
           if git diff --cached --quiet; then
