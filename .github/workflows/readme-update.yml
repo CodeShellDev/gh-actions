@@ -13,6 +13,11 @@ on:
         type: string
         default: README.md
 
+      output-branch:
+        required: false
+        type: string
+        default: ""
+
     secrets:
       GH_TOKEN:
         required: true
@@ -24,5 +29,6 @@ jobs:
     with:
       template: ${{ inputs.template }}
       output: ${{ inputs.output }}
+      push-branch: ${{ inputs.output-branch }}
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
