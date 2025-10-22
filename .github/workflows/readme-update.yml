@@ -29,6 +29,6 @@ jobs:
     with:
       template: ${{ inputs.template }}
       output: ${{ inputs.output }}
-      push-branch: ${{ inputs.output-branch }}
+      output-branch: ${{ inputs.output-branch }}
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
