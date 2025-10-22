@@ -41,6 +41,16 @@ on:
         type: boolean
         default: true
 
+      push-branch:
+        required: false
+        type: string
+        default: ""
+
+      force-push:
+        required: false
+        type: boolean
+        default: false
+
       artifact:
         required: false
         type: string
@@ -81,19 +91,38 @@ jobs:
       - name: Commit & Push ${{ inputs.output }}
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        if: ${{ inputs.push == true }}
+          OUTPUT: ${{ inputs.output }}
+          BRANCH: ${{ inputs.output-branch }}
         run: |
+          echo "Preparing to commit '${OUTPUT}' to branch '${BRANCH:-current branch}'"
+          
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          rm goplater
+          rm -f goplater
 
-          git add ${{ inputs.output }}
+          # Fetch all branches
+          git fetch origin
+
+          # Determine target branch (default to current)
+          if [ -n "$BRANCH" ]; then
+            if git ls-remote --exit-code origin "$BRANCH" >/dev/null 2>&1; then
+              echo "Branch '$BRANCH' exists. Switching..."
+              git switch "$BRANCH"
+            else
+              echo "Branch '$BRANCH' does not exist. Creating..."
+              git switch --orphan "$BRANCH"
+              git rm -rf . || true
+            fi
+          fi
+
+          # Add and commit changes
+          git add "$OUTPUT"
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "Update ${{ inputs.output }}"
-            git push
+            git commit -m "Update ${OUTPUT}"
+            git push ${{ inputs.force-push && '-f' || '' }} origin HEAD:${BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
           fi
 
       - name: Upload Artifact
