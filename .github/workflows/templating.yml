@@ -128,21 +128,21 @@ jobs:
 
           # Move all files to /tmp
           mkdir -p /tmp/artifacts
-          mv * /tmp/artifacts
+          mv ${OUTPUT} /tmp/artifacts
 
           # Determine target branch (default to current)
-          if [ -n "$BRANCH" ]; then
-            if git ls-remote --exit-code origin "$BRANCH" >/dev/null 2>&1; then
-              echo "Branch '$BRANCH' exists. Switching..."
-              git switch "$BRANCH"
+          if [ -n "${BRANCH}" ]; then
+            if git ls-remote --exit-code origin "${BRANCH}" >/dev/null 2>&1; then
+              echo "Branch '${BRANCH}' exists. Switching..."
+              git switch "${BRANCH}"
             else
-              echo "Branch '$BRANCH' does not exist. Creating..."
-              git switch --orphan "$BRANCH"
+              echo "Branch '${BRANCH}' does not exist. Creating..."
+              git switch --orphan "${BRANCH}"
             fi
           fi
 
           # Move back files
-          mv /tmp/artifacts/* .
+          mv /tmp/artifacts/* ${OUTPUT}
 
           git add "$OUTPUT"
           if git diff --cached --quiet; then
