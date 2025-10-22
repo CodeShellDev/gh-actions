@@ -56,6 +56,11 @@ on:
         type: string
         default: ""
 
+      allow-pr:
+        required: false
+        type: boolean
+        default: true
+
     secrets:
       GH_TOKEN:
         required: true
@@ -95,7 +100,8 @@ jobs:
           BRANCH: ${{ inputs.output-branch }}
         run: |
           echo "Preparing to commit '${OUTPUT}' to branch '${BRANCH:-current branch}'"
-          
+
+          set -e
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
@@ -116,14 +122,34 @@ jobs:
             fi
           fi
 
-          # Add and commit changes
           git add "$OUTPUT"
           if git diff --cached --quiet; then
             echo "No changes to commit."
-          else
-            git commit -m "Update ${OUTPUT}"
-            git push ${{ inputs.force-push && '-f' || '' }} origin HEAD:${BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
+            exit 0
           fi
+
+          git commit -m "Update ${OUTPUT}"
+
+          echo "Attempting direct push..."
+          if git push origin HEAD:${BRANCH:-$(git rev-parse --abbrev-ref HEAD)}; then
+            echo "✅ Successfully pushed changes."
+            echo "PUSH_SUCCESS=true" >> $GITHUB_ENV
+          else
+            echo "⚠️ Direct push failed. Will open a PR instead."
+            echo "PUSH_SUCCESS=false" >> $GITHUB_ENV
+          fi
+
+      - name: Create Pull Request (Fallback)
+        if: ${{ env.PUSH_SUCCESS == 'false' && inputs.allow-pr == true }}
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          branch: auto/update-${{ inputs.output }}
+          base: ${{ inputs.output-branch }}
+          title: "Automated update of ${{ inputs.output }}"
+          body: "This PR was created automatically because a direct push to **${{ inputs.output-branch }}** failed (likely due to branch protection)."
+          commit-message: "Update ${{ inputs.output }}"
+          delete-branch: true
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
