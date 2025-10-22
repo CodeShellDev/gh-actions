@@ -110,6 +110,7 @@ jobs:
             -i
               
       - name: Commit & Push ${{ inputs.output }}
+        if: ${{ inputs.push == true }}
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           OUTPUT: ${{ inputs.output }}
