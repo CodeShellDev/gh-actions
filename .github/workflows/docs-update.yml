@@ -33,7 +33,7 @@ jobs:
       template: ${{ inputs.template-path }}
       output: /tmp/${{ inputs.output-path }}
       recursive: true
-      source: ${{ inputs.template }}
+      source: ${{ inputs.template-path }}
       push: false
       artifact: docs-output
     secrets:
