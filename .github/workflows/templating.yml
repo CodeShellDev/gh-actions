@@ -61,6 +61,11 @@ on:
         type: boolean
         default: true
 
+      pr-title:
+        required: false
+        type: string
+        default: "Automated ouput of ${{ inputs.output }}"
+
       pr-template:
         required: false
         type: string
@@ -169,7 +174,7 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           branch: auto/update-${{ inputs.output }}-${{ github.run_id }}
           base: ${{ inputs.output-branch }}
-          title: "Automated update of ${{ inputs.output }}"
+          title: ${{ inputs.pr-title }}
           body: ${{ inputs.pr-template }}
           commit-message: "Update ${{ inputs.output }}"
           delete-branch: true
