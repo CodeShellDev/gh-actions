@@ -30,5 +30,6 @@ jobs:
       template: ${{ inputs.template }}
       output: ${{ inputs.output }}
       output-branch: ${{ inputs.output-branch }}
+      pr-title: "Automated README update"
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
