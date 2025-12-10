@@ -13,6 +13,10 @@ on:
         type: string
         default: "1.25.x"
 
+    secrets:
+      GH_TOKEN:
+        required: true
+        
 jobs:
   build:
     name: Build & Test
@@ -89,6 +93,7 @@ jobs:
       - name: Attach binaries to release
         uses: softprops/action-gh-release@v2
         with:
+          token: ${{ secrets.GH_TOKEN }}
           files: dist/*
           tag_name: ${{ github.event.release.tag_name }}
         env:
