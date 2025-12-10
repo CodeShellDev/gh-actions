@@ -51,7 +51,7 @@ jobs:
       - name: Cross-Compile Go binaries
         run: |
           platforms="${{ inputs.platforms }}"
-          repo_name="${{ github.repository }}"
+          repo_name="${{ github.event.repository.name }}"
 
           IFS=', ' read -ra platforms <<< "$platforms"
 
