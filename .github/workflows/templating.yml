@@ -156,7 +156,7 @@ jobs:
             exit 0
           fi
 
-          COAUTHORS=$(git log origin/"${BRANCH}"..HEAD --format='Co-authored-by: %aN <%aE>' | sort -u | grep -v "github-actions[bot]")
+          COAUTHORS=$(git log origin/"${BRANCH}"..HEAD --format="Co-authored-by: %aN <%aE>" | sort -u | grep -v "github-actions[bot]")
           
           # Prepare commit message
           COMMIT_MSG="Update ${OUTPUT}"
