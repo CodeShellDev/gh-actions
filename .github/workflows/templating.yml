@@ -156,6 +156,8 @@ jobs:
             exit 0
           fi
 
+          echo "coauthors..."
+
           COAUTHORS=$(git log origin/"${BRANCH}"..HEAD --format="Co-authored-by: %aN <%aE>" | sort -u | grep -v "github-actions[bot]")
           
           if [ -n "$COAUTHORS" ]; then
