@@ -156,9 +156,7 @@ jobs:
             exit 0
           fi
 
-          echo "coauthors..."
-
-          COAUTHORS=$(git log origin/"${BRANCH}"..HEAD --format="Co-authored-by: %aN <%aE>" | sort -u | grep -v "github-actions[bot]")
+          COAUTHORS=$(git log origin/"${BRANCH:-main}" -1 --format="Co-authored-by: %aN <%aE>" | grep -v "github-actions[bot]")          
           
           if [ -n "$COAUTHORS" ]; then
             git commit -m "Update ${OUTPUT}" -m "$COAUTHORS"
