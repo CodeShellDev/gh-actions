@@ -158,13 +158,11 @@ jobs:
 
           COAUTHORS=$(git log origin/"${BRANCH}"..HEAD --format="Co-authored-by: %aN <%aE>" | sort -u | grep -v "github-actions[bot]")
           
-          # Prepare commit message
-          COMMIT_MSG="Update ${OUTPUT}"
           if [ -n "$COAUTHORS" ]; then
-            COMMIT_MSG="${COMMIT_MSG}\n${COAUTHORS}"
+            git commit -m "Update ${OUTPUT}" -m "$COAUTHORS"
+          else
+            git commit -m "Update ${OUTPUT}"
           fi
-
-          git commit -m "$COMMIT_MSG"
 
           echo "Attempting direct push..."
           if git push origin HEAD:${BRANCH:-$(git rev-parse --abbrev-ref HEAD)}; then
