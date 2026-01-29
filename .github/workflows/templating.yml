@@ -156,7 +156,15 @@ jobs:
             exit 0
           fi
 
-          git commit -m "Update ${OUTPUT}"
+          COAUTHORS=$(git log origin/"${BRANCH}"..HEAD --format='Co-authored-by: %aN <%aE>' | sort -u | grep -v "github-actions[bot]")
+          
+          # Prepare commit message
+          COMMIT_MSG="Update ${OUTPUT}"
+          if [ -n "$COAUTHORS" ]; then
+            COMMIT_MSG="${COMMIT_MSG}\n${COAUTHORS}"
+          fi
+
+          git commit -m "$COMMIT_MSG"
 
           echo "Attempting direct push..."
           if git push origin HEAD:${BRANCH:-$(git rev-parse --abbrev-ref HEAD)}; then
@@ -176,8 +184,6 @@ jobs:
           base: ${{ inputs.output-branch }}
           title: ${{ inputs.pr-title }}
           body: ${{ inputs.pr-template }}
-          commit-message: "Update ${{ inputs.output }}"
-          delete-branch: true
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
