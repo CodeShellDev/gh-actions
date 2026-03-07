@@ -72,7 +72,11 @@ jobs:
 
               echo "Created $path"
 
-              GOOS="$os" GOARCH="$arch" CGO_ENABLED=0 go build -ldflags="-w -s" "-X 'main.Version=${{ github.event.release.tag_name }}'" -o "$path" .
+              if ${{ inputs.set-version }}; then
+                GOOS="$os" GOARCH="$arch" CGO_ENABLED=0 go build -ldflags="-w -s -X 'main.Version=${{ github.event.release.tag_name }}'" -o "$path" .
+              else
+                GOOS="$os" GOARCH="$arch" CGO_ENABLED=0 go build -ldflags="-w -s" -o "$path" .
+              fi
 
               echo "Built Binaries for $os/$arch"
           done
