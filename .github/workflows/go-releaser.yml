@@ -13,6 +13,11 @@ on:
         type: string
         default: "1.25.x"
 
+      set-version:
+        required: false
+        type: boolean
+        default: false
+
     secrets:
       GH_TOKEN:
         required: true
@@ -67,7 +72,7 @@ jobs:
 
               echo "Created $path"
 
-              GOOS="$os" GOARCH="$arch" CGO_ENABLED=0 go build -ldflags="-w -s" -o "$path" .
+              GOOS="$os" GOARCH="$arch" CGO_ENABLED=0 go build -ldflags="-w -s" "-X 'main.Version=${{ github.event.release.tag_name }}'" -o "$path" .
 
               echo "Built Binaries for $os/$arch"
           done
