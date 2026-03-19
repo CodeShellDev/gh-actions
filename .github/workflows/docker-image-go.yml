@@ -61,6 +61,11 @@ jobs:
     name: Build & Push
 
     steps:
+      - name: EXIT
+        run: |
+          echo "Please use 'FROM golang:1.26-alpine AS builder' in combination with 'RUN go build -ldflags="-w -s" -o app .' and 'codeshelldev/gh-actions/.github/workflows/docker-image.yml@main' instead"
+          exit 2
+          
       - name: Checkout Repository
         uses: actions/checkout@v4
 
