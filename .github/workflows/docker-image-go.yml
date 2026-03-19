@@ -44,7 +44,12 @@ on:
       go-version:
         required: false
         type: string
-        default: "1.25.x"
+        default: "1.26.x"
+
+      cgo-enable:
+        required: false
+        type: boolean
+        default: false
 
     secrets:
       GH_PCKG_TOKEN:
@@ -98,7 +103,13 @@ jobs:
 
               echo "Created $path"
 
-              GOOS="$os" GOARCH="$arch" CGO_ENABLED=0 go build -ldflags="-w -s" -o "$path" .
+              cgo_enabled=0
+
+              if ${{ inputs.cgo-enable }}; then
+                cgo_enabled=1
+              fi
+
+              GOOS="$os" GOARCH="$arch" CGO_ENABLED=$cgo_enabled go build -ldflags="-w -s" -o "$path" .
 
               echo "Built Binaries for $os/$arch"
           done
