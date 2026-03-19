@@ -39,7 +39,7 @@ on:
       platforms:
         required: false
         type: string
-        default: linux/amd64, linux/arm64
+        default: linux/amd64,linux/arm64
 
       go-version:
         required: false
@@ -89,7 +89,7 @@ jobs:
         run: |
           platforms="${{ inputs.platforms }}"
 
-          IFS=', ' read -ra platforms <<< "$platforms"
+          IFS=',' read -ra platforms <<< "$platforms"
 
           for platform in "${platforms[@]}"; do
               IFS='/' read -ra platformData <<< "$platform"
