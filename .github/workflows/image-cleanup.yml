@@ -17,9 +17,21 @@ on:
         type: string
         default: ${{ github.repository }}
 
+      cleanup-stales:
+        required: false
+        type: string
+
+      stale-threshold:
+        required: false
+        type: string
+        default: 30 days
+
     secrets:
       GH_PCKG_TOKEN:
         required: true
+
+env:
+  PACKAGE_NAME: ""
 
 jobs:
   cleanup:
@@ -42,3 +54,14 @@ jobs:
           delete-tags: sha-*
           delete-untagged: true
           delete-orphaned-images: true
+          
+      - name: Cleanup Stale Images
+        if: ${{ inputs.cleanup-stales != '' }}
+        uses: snok/container-retention-policy@v2
+        with:
+          registry-url: https://${{ inputs.registry }}/
+          token: ${{ secrets.GH_PCKG_TOKEN }}
+          owner: ${{ inputs.username }}
+          package: ${{ env.PACKAGE_NAME }}
+          delete-tags: ${{ inputs.cleanup-stales }}
+          older-than: ${{ inputs.stale-threshold }}
