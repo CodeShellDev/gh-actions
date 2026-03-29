@@ -52,6 +52,7 @@ jobs:
           token: ${{ secrets.GH_PCKG_TOKEN }}
           owner: ${{ inputs.username }}
           package: ${{ env.PACKAGE_NAME }}
+          use-regex: true
           delete-tags: ${{ inputs.cleanup-stales }}
           older-than: ${{ inputs.stale-threshold }}
 
