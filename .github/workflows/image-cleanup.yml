@@ -57,7 +57,7 @@ jobs:
           
       - name: Cleanup Stale Images
         if: ${{ inputs.cleanup-stales != '' }}
-        uses: snok/container-retention-policy@v2
+        uses: dataaxiom/ghcr-cleanup-action@v1
         with:
           registry-url: https://${{ inputs.registry }}/
           token: ${{ secrets.GH_PCKG_TOKEN }}
