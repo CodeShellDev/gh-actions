@@ -43,17 +43,6 @@ jobs:
         run: |
           echo "PACKAGE_NAME=${{ inputs.image }}" 
           echo "PACKAGE_NAME=${PACKAGE_NAME#*/}" >> $GITHUB_ENV
-    
-      - name: Cleanup Images
-        uses: dataaxiom/ghcr-cleanup-action@v1
-        with:
-          registry-url: https://${{ inputs.registry }}/
-          token: ${{ secrets.GH_PCKG_TOKEN }}
-          owner: ${{ inputs.username }}
-          package: ${{ env.PACKAGE_NAME }}
-          delete-tags: sha-*
-          delete-untagged: true
-          delete-orphaned-images: true
           
       - name: Cleanup Stale Images
         if: ${{ inputs.cleanup-stales != '' }}
@@ -65,3 +54,13 @@ jobs:
           package: ${{ env.PACKAGE_NAME }}
           delete-tags: ${{ inputs.cleanup-stales }}
           older-than: ${{ inputs.stale-threshold }}
+
+      - name: Cleanup Untagged Images
+        uses: dataaxiom/ghcr-cleanup-action@v1
+        with:
+          registry-url: https://${{ inputs.registry }}/
+          token: ${{ secrets.GH_PCKG_TOKEN }}
+          owner: ${{ inputs.username }}
+          package: ${{ env.PACKAGE_NAME }}
+          delete-untagged: true
+          delete-orphaned-images: true
