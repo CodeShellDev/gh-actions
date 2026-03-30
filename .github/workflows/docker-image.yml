@@ -82,6 +82,12 @@ jobs:
           flavor: ${{ inputs.flavor }}
           tags: ${{ inputs.tags }}
 
+      - name: Set Build Metadata
+        id: build-meta
+        run: |
+          echo "git_commit=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          echo "build_time=$(date -u +%s)" >> $GITHUB_OUTPUT
+
       - name: Build and Push Image
         uses: docker/build-push-action@v6
         with:
@@ -94,3 +100,6 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             IMAGE_TAG=${{ steps.meta.outputs.version }}
+            BUILD_TIME=${{ steps.build-meta.outputs.build_time }}
+            GIT_COMMIT=${{ steps.build-meta.outputs.git_commit }}
+            REPOSITORY_URL=https://github.com/${{ github.repository }}
