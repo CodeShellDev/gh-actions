@@ -18,6 +18,16 @@ on:
         type: string
         default: "-w -s"
 
+      add-version:
+        required: false
+        type: boolean
+        default: true
+
+      version:
+        required: false
+        type: string
+        default: ${{ github.event.release.tag_name }}
+
     secrets:
       GH_TOKEN:
         required: true
@@ -66,7 +76,11 @@ jobs:
               os="${platformData[0]}"
               arch="${platformData[1]}"
 
-              path="dist/${repo_name}-$os-$arch"
+              if ${{ inputs.add-version }}; then
+                path="dist/${repo_name}-${{ inputs.version }}-$os-$arch"
+              else
+                path="dist/${repo_name}-$os-$arch"
+              fi
 
               mkdir -p "$(dirname "$path")"
 
