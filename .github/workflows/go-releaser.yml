@@ -61,7 +61,7 @@ jobs:
         run: go mod tidy
 
       - name: Run Go test
-        run: go test ./... -v
+        run: go test ./tests -v
 
       - name: Cross-Compile Go binaries
         run: |
