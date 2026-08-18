@@ -102,6 +102,10 @@ runs:
           os="${p[0]}"; arch="${p[1]}"
           path="${{ inputs.output-dir }}/$os/$arch/${{ inputs.binary-name }}"
 
+          if [[ "$os" == "windows" ]]; then
+            path+=".exe"
+          fi
+
           mkdir -p "$(dirname "$path")"
           echo "Building $path"
 
