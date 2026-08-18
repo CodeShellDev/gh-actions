@@ -12,7 +12,7 @@ inputs:
 
   output-pattern:
     description: Path pattern to parse files against. Placeholders become named fields
-    default: dist/{os}/{arch}/{name}
+    default: dist/{os}/{arch}/app
 
   cgo-enabled:
     description: Compile using cgo
@@ -94,13 +94,17 @@ runs:
         IFS=',' read -ra platforms <<< "${{ inputs.platforms }}"
 
         cgo=0
-        [ "${{ inputs.cgo-enabled }}" = "true" ] && cgo=1
+        [[ "${{ inputs.cgo-enabled }}" == "true" ]] && cgo=1
 
         for platform in "${platforms[@]}"; do
           IFS='/' read -ra p <<< "$platform"
 
-          os="${p[0]}"; arch="${p[1]}"
-          path="${{ inputs.output-dir }}/$os/$arch/${{ inputs.binary-name }}"
+          os="${p[0]}"
+          arch="${p[1]}"
+
+          path="${{ inputs.output-pattern }}"
+          path="${path//\{os\}/$os}"
+          path="${path//\{arch\}/$arch}"
 
           if [[ "$os" == "windows" ]]; then
             path+=".exe"
@@ -109,6 +113,11 @@ runs:
           mkdir -p "$(dirname "$path")"
           echo "Building $path"
 
-          GOOS="$os" GOARCH="$arch" CGO_ENABLED=$cgo \
-            go build -ldflags="${{ inputs.ldflags }} ${{ steps.ldflags.outputs.value }}" -o "$path" ${{ inputs.context }}
+          GOOS="$os" \
+          GOARCH="$arch" \
+          CGO_ENABLED="$cgo" \
+            go build \
+              -ldflags="${{ inputs.ldflags }} ${{ steps.ldflags.outputs.value }}" \
+              -o "$path" \
+              ${{ inputs.context }}
         done
