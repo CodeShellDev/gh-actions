@@ -10,7 +10,7 @@ inputs:
     description: Comma-separated os/arch pairs
     default: linux/amd64,linux/arm64
 
-  ouput-pattern:
+  output-pattern:
     description: Path pattern to parse files against. Placeholders become named fields
     default: dist/{os}/{arch}/{name}
 
