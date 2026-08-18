@@ -38,7 +38,7 @@ inputs:
     description: Build args passed into packages, e.g. 'main.Version=v1.0.0' or 'Version.v1.0.0' (defaults to `buildargs-package`)
     default: ""
 
-  buildargs-package:
+  build-args-package:
     description: Package path used for build-args keys with no dot (no explicit package)
     default: buildinfo
 
