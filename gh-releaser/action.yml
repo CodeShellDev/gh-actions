@@ -1,0 +1,102 @@
+name: GitHub Release
+description: Renames/reformats built artifacts by pattern and attaches them to a GitHub release
+
+inputs:
+  files:
+    description: Glob of files to release
+    default: dist/**/*
+
+  input-pattern:
+    description: Path pattern to parse files against. Placeholders become named fields
+    default: "dist/{os}/{arch}/{name}"
+
+  output-pattern:
+    description: Filename pattern to rename matched files to
+    default: "{name}-{version}-{os}-{arch}"
+
+  version:
+    description: Version of binary files
+    default: ""
+
+  tag-name:
+    description: Tag name for release
+    required: true
+
+  token:
+    description: Token for modifying release
+    required: true
+
+  draft:
+    description: Save release as draft
+    default: "false"
+
+  prerelease:
+    description: Mark release as prerelease
+    default: "false"
+
+  output-dir:
+    description: Output directory to be used
+    default: release
+
+runs:
+  using: composite
+  steps:
+    - id: stage
+      shell: bash
+      env:
+        FILES_GLOB: ${{ inputs.files }}
+        INPUT_PATTERN: ${{ inputs.input-pattern }}
+        OUTPUT_PATTERN: ${{ inputs.output-pattern }}
+        VERSION: ${{ inputs.version }}
+        OUT_DIR: ${{ inputs.output-dir }}
+      run: |
+        python3 - <<'PY'
+        import glob, os, re, shutil
+
+        files_glob = os.environ['FILES_GLOB']
+        input_pattern = os.environ['INPUT_PATTERN']
+        output_pattern = os.environ['OUTPUT_PATTERN']
+        version = os.environ.get('VERSION', '')
+        out_dir = os.environ['OUT_DIR']
+
+        os.makedirs(out_dir, exist_ok=True)
+
+        field_names = re.findall(r'\{(\w+)\}', input_pattern)
+        regex_str = re.escape(input_pattern)
+        for f in field_names:
+            regex_str = regex_str.replace(re.escape('{' + f + '}'), f'(?P<{f}>.+?)')
+        regex = re.compile('^' + regex_str + '$')
+
+        matched = 0
+        for path in glob.glob(files_glob, recursive=True):
+            if os.path.isdir(path):
+                continue
+            m = regex.match(path)
+            if not m:
+                print(f"Skip (no match against input-pattern): {path}")
+                continue
+
+            fields = m.groupdict()
+            fields['version'] = version
+
+            out_name = output_pattern
+            for k, v in fields.items():
+                out_name = out_name.replace('{' + k + '}', v)
+
+            dest = os.path.join(out_dir, out_name)
+            os.makedirs(os.path.dirname(dest) or '.', exist_ok=True)
+            shutil.copy2(path, dest)
+            print(f"{path} -> {dest}")
+            matched += 1
+
+        if matched == 0:
+            print("::warning::No files matched input-pattern; nothing will be released")
+        PY
+
+    - uses: softprops/action-gh-release@v2
+      with:
+        token: ${{ inputs.token }}
+        tag_name: ${{ inputs.tag-name }}
+        files: ${{ inputs.output-dir }}/*
+        draft: ${{ inputs.draft }}
+        prerelease: ${{ inputs.prerelease }}
