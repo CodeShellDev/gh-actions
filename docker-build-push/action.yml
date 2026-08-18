@@ -3,20 +3,25 @@ description: Builds and pushes a (multi-arch) Docker image
 
 inputs:
   registry:
+    description: Docker registry to push to
     required: true
 
   username:
+    description: Username used for login
     required: false
     default: ""
 
   token:
+    description: Token used for login
     required: true
 
   image:
+    description: Image name to use for pushing
     required: false
     default: ""
 
   context:
+    description: Build context
     default: .
 
   platforms:
@@ -24,31 +29,40 @@ inputs:
     default: linux/amd64,linux/arm64
 
   flavor:
+    description: Docker tag flavor
     default: |
       latest=true
 
   tags:
+    description: Docker tags
     default: |
       type=semver,pattern=v{{version}}
       type=semver,pattern=v{{major}}.{{minor}}
       type=semver,pattern=v{{major}}
 
   use-qemu:
+    description: Use QEMU for multi-arch image
     default: "false"
 
   push:
+    description: Perform push after build
     default: "true"
 
   cache:
+    description: Cache build artifacts
     default: "true"
 
   build-args:
+    description: Docker build args passed to the container image
     default: ""
 
 outputs:
   tags:
+    description: Compiled tags
     value: ${{ steps.meta.outputs.tags }}
+
   version:
+    description: Compiled version
     value: ${{ steps.meta.outputs.version }}
 
 runs:

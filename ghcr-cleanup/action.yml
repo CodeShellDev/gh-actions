@@ -1,18 +1,21 @@
-# .github/actions/ghcr-cleanup/action.yml
 name: GHCR Cleanup
 description: Deletes stale and/or untagged images from a GHCR package
 
 inputs:
   registry:
+    description: Docker registry of image
     required: true
 
   username:
+    description: Username to be used for login
     default: ${{ github.repository_owner }}
 
   image:
+    description: Image to be cleaned
     required: true
 
   token:
+    description: Token for docker login
     required: true
 
   delete-tags:
@@ -24,9 +27,11 @@ inputs:
     default: "30 days"
 
   cleanup-untagged:
+    description: Whether to clean untagged images
     default: "true"
 
   delete-orphaned-images:
+    description: Whether to orphaned images
     default: "true"
 
 runs:

@@ -7,6 +7,7 @@ inputs:
     default: .
 
   commit-message:
+    description: Commit message
     default: Update files
 
   branch:
@@ -14,6 +15,7 @@ inputs:
     default: ""
 
   create-branch-if-missing:
+    description: Whether to create a new branch if none already exists
     default: "true"
 
   allow-direct-push:
@@ -32,6 +34,7 @@ inputs:
     default: "true"
 
   pr-branch:
+    description: Branch used for PR
     default: auto/update-${{ github.run_id }}
 
   pr-base:
@@ -39,9 +42,11 @@ inputs:
     default: ""
 
   pr-title:
+    description: Title of PR
     default: Automated update
 
   pr-body:
+    description: PR body
     default: Automated changes from a GitHub Actions workflow.
 
   pr-labels:
@@ -53,6 +58,7 @@ inputs:
     default: ""
 
   pr-draft:
+    description: Save PR as draft
     default: "false"
 
   co-author-name:
@@ -64,6 +70,7 @@ inputs:
     default: ""
 
   token:
+    description: Token used for pushing or creating a PR
     required: true
 
 outputs:

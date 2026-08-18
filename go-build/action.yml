@@ -3,45 +3,44 @@ description: Cross-compiles Go binaries for one or more platforms
 
 inputs:
   go-version:
+    description: Go version used for compilation
     default: "1.26.x"
 
   platforms:
     description: Comma-separated os/arch pairs
     default: linux/amd64,linux/arm64
 
-  output-pattern:
-    description: "Output path pattern. Placeholders: {name} {os} {arch}"
-    default: "dist/{os}/{arch}/{name}"
+  ouput-pattern:
+    description: Path pattern to parse files against. Placeholders become named fields
+    default: dist/{os}/{arch}/{name}
 
   cgo-enabled:
+    description: Compile using cgo
     default: "false"
 
-  binary-name:
-    default: app
-
   ldflags:
+    description: Go build ldflags
     default: "-w -s"
 
   context:
+    description: Build context
     default: .
 
   working-directory:
+    description: Working Directory
     default: .
 
   run-tests:
+    description: Whether to run tests or not
     default: "true"
 
   build-args:
+    description: Build args passed into packages, e.g. 'main.Version=v1.0.0' or 'Version.v1.0.0' (defaults to `buildargs-package`)
     default: ""
 
   buildargs-package:
     description: Package path used for build-args keys with no dot (no explicit package)
     default: buildinfo
-
-outputs:
-  output-dir:
-    description: Directory the built binaries were placed in
-    value: ""
 
 runs:
   using: composite
@@ -101,11 +100,7 @@ runs:
           IFS='/' read -ra p <<< "$platform"
 
           os="${p[0]}"; arch="${p[1]}"
-
-          path="${{ inputs.output-pattern }}"
-          path="${path//\{name\}/${{ inputs.binary-name }}}"
-          path="${path//\{os\}/$os}"
-          path="${path//\{arch\}/$arch}"
+          path="${{ inputs.output-dir }}/$os/$arch/${{ inputs.binary-name }}"
 
           mkdir -p "$(dirname "$path")"
           echo "Building $path"
