@@ -1,0 +1,204 @@
+name: Commit, Push or PR
+description: Commits given paths, pushes to a branch, and opens a PR as fallback if push is not allowed or fails
+
+inputs:
+  path:
+    description: Path(s) to commit, space-separated
+    default: .
+
+  commit-message:
+    default: Update files
+
+  branch:
+    description: Target branch. Empty = current branch
+    default: ""
+
+  create-branch-if-missing:
+    default: "true"
+
+  allow-direct-push:
+    description: Whether direct push may be attempted at all
+    default: "true"
+
+  allowed-pushers:
+    description: >
+      Comma-separated github usernames allowed to trigger a direct push.
+      Also accepts 'admin', 'maintain', 'write' etc. to check github.actor's
+      repo permission level via the API instead of a fixed list. Empty = no restriction.
+    default: ""
+
+  allow-pr:
+    description: Open a PR if direct push is skipped or fails
+    default: "true"
+
+  pr-branch:
+    default: auto/update-${{ github.run_id }}
+
+  pr-base:
+    description: PR base branch. Empty = same as branch input
+    default: ""
+
+  pr-title:
+    default: Automated update
+
+  pr-body:
+    default: Automated changes from a GitHub Actions workflow.
+
+  pr-labels:
+    description: Comma-separated labels
+    default: ""
+
+  pr-reviewers:
+    description: Comma-separated usernames
+    default: ""
+
+  pr-draft:
+    default: "false"
+
+  co-author-name:
+    description: Name of whoever actually made the changes. Empty = github.actor
+    default: ""
+
+  co-author-email:
+    description: Email for co-author. Empty = derived from github.actor via noreply pattern
+    default: ""
+
+  token:
+    required: true
+
+outputs:
+  pushed:
+    description: true if a direct push succeeded
+    value: ${{ steps.push.outputs.pushed }}
+
+  pr-url:
+    description: URL of the opened PR, if any
+    value: ${{ steps.pr.outputs.pull-request-url }}
+
+runs:
+  using: composite
+  steps:
+    - id: coauthor
+      shell: bash
+      run: |
+        name="${{ inputs.co-author-name }}"
+        email="${{ inputs.co-author-email }}"
+
+        if [ -z "$name" ]; then
+          name="${{ github.actor }}"
+        fi
+        if [ -z "$email" ]; then
+          email="${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+        fi
+
+        echo "trailer=Co-authored-by: $name <$email>" >> "$GITHUB_OUTPUT"
+
+    - id: permission
+      if: inputs.allow-direct-push == 'true' && inputs.allowed-pushers != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        allowed_raw="${{ inputs.allowed-pushers }}"
+        actor="${{ github.actor }}"
+        allow="false"
+
+        IFS=',' read -ra entries <<< "$allowed_raw"
+        for entry in "${entries[@]}"; do
+          entry="$(echo "$entry" | xargs)"
+
+          case "$entry" in
+            admin|maintain|write|triage|read)
+              level=$(gh api "repos/${{ github.repository }}/collaborators/$actor/permission" --jq .permission 2>/dev/null || echo "none")
+              if [ "$level" = "$entry" ] || { [ "$entry" = "write" ] && [ "$level" = "admin" ]; }; then
+                allow="true"
+              fi
+              ;;
+            "$actor")
+              allow="true"
+              ;;
+          esac
+        done
+
+        echo "allowed=$allow" >> "$GITHUB_OUTPUT"
+
+    - id: commit
+      shell: bash
+      env:
+        BRANCH: ${{ inputs.branch }}
+        MSG: ${{ inputs.commit-message }}
+        COAUTHOR: ${{ steps.coauthor.outputs.trailer }}
+      run: |
+        set -e
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+        git fetch origin
+
+        mkdir -p /tmp/artifacts
+        for p in ${{ inputs.path }}; do
+          mkdir -p "/tmp/artifacts/$(dirname "$p")"
+          cp -r "$p" "/tmp/artifacts/$p" 2>/dev/null || cp -r "$p" "/tmp/artifacts/$(dirname "$p")/"
+        done
+
+        if [ -n "$BRANCH" ]; then
+          if git ls-remote --exit-code origin "$BRANCH" >/dev/null 2>&1; then
+            echo "Branch '$BRANCH' exists. Switching..."
+            git switch "$BRANCH"
+          elif [ "${{ inputs.create-branch-if-missing }}" = "true" ]; then
+            echo "Branch '$BRANCH' does not exist. Creating..."
+            git switch --orphan "$BRANCH"
+          else
+            echo "::error::Branch '$BRANCH' does not exist and create-branch-if-missing is false"
+            exit 1
+          fi
+        fi
+
+        for p in ${{ inputs.path }}; do
+          mkdir -p "$(dirname "$p")"
+          cp -r "/tmp/artifacts/$p" "$p" 2>/dev/null || cp -r "/tmp/artifacts/$(dirname "$p")/"* "$(dirname "$p")/"
+        done
+
+        git add ${{ inputs.path }}
+
+        if git diff --cached --quiet; then
+          echo "No changes to commit."
+          echo "has-changes=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        echo "has-changes=true" >> "$GITHUB_OUTPUT"
+        git commit -m "$MSG" -m "$COAUTHOR"
+
+    - id: push
+      if: steps.commit.outputs.has-changes == 'true' && inputs.allow-direct-push == 'true' && (inputs.allowed-pushers == '' || steps.permission.outputs.allowed == 'true')
+      shell: bash
+      env:
+        BRANCH: ${{ inputs.branch }}
+      run: |
+        target="${BRANCH:-$(git rev-parse --abbrev-ref HEAD)}"
+        if git push origin "HEAD:$target"; then
+          echo "✅ Successfully pushed to $target"
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "⚠️ Direct push failed"
+          echo "pushed=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - id: pr
+      if: steps.commit.outputs.has-changes == 'true' && steps.push.outputs.pushed != 'true' && inputs.allow-pr == 'true'
+      uses: peter-evans/create-pull-request@v6
+      with:
+        token: ${{ inputs.token }}
+        branch: ${{ inputs.pr-branch }}
+        base: ${{ inputs.pr-base != '' && inputs.pr-base || inputs.branch }}
+        title: ${{ inputs.pr-title }}
+        body: |
+          ${{ inputs.pr-body }}
+
+          ---
+          ${{ steps.coauthor.outputs.trailer }}
+        labels: ${{ inputs.pr-labels }}
+        reviewers: ${{ inputs.pr-reviewers }}
+        draft: ${{ inputs.pr-draft }}
+        commit-message: ${{ inputs.commit-message }}

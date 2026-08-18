@@ -1,0 +1,62 @@
+# .github/actions/ghcr-cleanup/action.yml
+name: GHCR Cleanup
+description: Deletes stale and/or untagged images from a GHCR package
+
+inputs:
+  registry:
+    required: true
+
+  username:
+    default: ${{ github.repository_owner }}
+
+  image:
+    required: true
+
+  token:
+    required: true
+
+  delete-tags:
+    description: Regex of tags to delete. Leave empty to skip stale-tag cleanup
+    default: ""
+
+  older-than:
+    description: Age threshold for delete-tags, e.g. "30 days"
+    default: "30 days"
+
+  cleanup-untagged:
+    default: "true"
+
+  delete-orphaned-images:
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - id: package
+      shell: bash
+      run: |
+        image="${{ inputs.image }}"
+        echo "name=${image#*/}" >> "$GITHUB_OUTPUT"
+
+    - if: inputs.delete-tags != ''
+      name: Cleanup stale tags
+      uses: dataaxiom/ghcr-cleanup-action@v1
+      with:
+        registry-url: https://${{ inputs.registry }}/
+        token: ${{ inputs.token }}
+        owner: ${{ inputs.username }}
+        package: ${{ steps.package.outputs.name }}
+        use-regex: true
+        delete-tags: ${{ inputs.delete-tags }}
+        older-than: ${{ inputs.older-than }}
+
+    - if: inputs.cleanup-untagged == 'true'
+      name: Cleanup untagged images
+      uses: dataaxiom/ghcr-cleanup-action@v1
+      with:
+        registry-url: https://${{ inputs.registry }}/
+        token: ${{ inputs.token }}
+        owner: ${{ inputs.username }}
+        package: ${{ steps.package.outputs.name }}
+        delete-untagged: true
+        delete-orphaned-images: ${{ inputs.delete-orphaned-images }}
