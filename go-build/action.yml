@@ -4,7 +4,7 @@ description: Cross-compiles Go binaries for one or more platforms
 inputs:
   go-version:
     description: Go version used for compilation
-    default: "1.26.x"
+    default: "1.27.x"
 
   platforms:
     description: Comma-separated os/arch pairs
